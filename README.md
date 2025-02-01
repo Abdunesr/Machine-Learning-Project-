@@ -1,1 +1,1 @@
-deployment api      https://machine-learning-project-jfq8.onrender.com 
+deployment api      https://machine-learning-project-jfq8.onrender.com/docs
