@@ -1,15 +1,26 @@
-
 import pandas as pd
-from fastapi import FastAPI
-from pydantic import BaseModel
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-import uvicorn
 import joblib
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
+# Initialize FastAPI app
+app = FastAPI()
+
+# ✅ Fix CORS Error: Allow requests from your React frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all domains (change this to specific origins if needed)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 # Step 1: Load dataset
-df_cleaned_data = pd.read_csv("cleaned_file.csv")  # Replace with your actual file path
+df_cleaned_data = pd.read_csv("cleaned_file.csv")  # Ensure the file path is correct
 
 # Step 2: Define features (X) and target (y)
 X = df_cleaned_data[['FullTimeHomeTeamGoals', 'FullTimeAwayTeamGoals', 'HomeTeamPoints', 'AwayTeamPoints']]
@@ -24,13 +35,10 @@ rf_model.fit(X_train, y_train)
 
 # Step 5: Save model using joblib
 joblib.dump(rf_model, "rf_model.joblib")
-print("Model saved successfully as rf_model.joblib")
+print("✅ Model saved successfully as rf_model.joblib")
 
 # Step 6: Load the trained model for deployment
 model = joblib.load("rf_model.joblib")
-
-# Initialize FastAPI app
-app = FastAPI()
 
 # Define input data format
 class MatchInput(BaseModel):
@@ -45,5 +53,6 @@ def predict(input_data: MatchInput):
     prediction = model.predict(input_df)  # Make prediction
     return {"prediction": prediction[0]}
 
+# Run the API
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
